@@ -13,6 +13,10 @@ const userSchema = new mongoose.Schema({
       messageBody: {
         type: String,
       },
+      isAgentReply: {
+        type: Boolean,
+        default: false,
+      },
     },
   ],
   isAccepted: {

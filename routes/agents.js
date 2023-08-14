@@ -22,7 +22,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-
 router.get("/:agentName", async (req, res) => {
   const { agentName } = req.params;
 
@@ -40,7 +39,6 @@ router.get("/:agentName", async (req, res) => {
   }
 });
 
-// Add a user to the usersAccepted array
 router.post('/addUser', async (req, res) => {
   const { userId, agentName } = req.body;
 
@@ -60,13 +58,13 @@ router.post('/addUser', async (req, res) => {
   }
 });
 
-//Remove from selected users
 router.post('/removeUser', async (req, res) => {
   const { userId, agentName } = req.body;
 
-
     let user = await User.findOne({ userID: userId });
     user.isAccepted = false;
+    user.isUrgent = false;
+    user.isResolved = true;
     await user.save();
   try {
     const agentInteraction = await Agent.findOneAndUpdate(
@@ -81,7 +79,44 @@ router.post('/removeUser', async (req, res) => {
   }
 });
 
-// ...
+router.post("/reply", async (req, res) => {
+  const { userId, replyMessage } = req.body;
 
+  try {
+    const user = await User.findOne({ userID: userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const reply = {
+      timestamp: new Date(),
+      messageBody: replyMessage,
+      isAgentReply: true,
+    };
+    user.userMessages.push(reply);
+    await user.save();
+    res.status(200).json({ message: "Reply sent successfully" });
+  } catch (error) {
+    console.error("Error sending reply:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.get("/search/:searchTerm", async (req, res) => {
+  const searchTerm = req.params.searchTerm;
+
+  try {
+    const messages = await User.find({
+      $or: [
+        { "userMessages.messageBody": { $regex: searchTerm, $options: "i" } },
+        { userID: { $regex: searchTerm, $options: "i" } },
+      ],
+    }).populate("userMessages");
+
+    res.json(messages);
+  } catch (error) {
+    console.error("Error searching messages:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 module.exports = router;

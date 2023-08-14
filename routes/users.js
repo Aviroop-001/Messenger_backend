@@ -29,23 +29,26 @@ router.post("/message", async (req, res) => {
 
 router.get("/pending", async (req, res) => {
   try {
-    const pendingUsers = await User.find({ isAccepted: false }).select("userID");
-    const pendingUserIDs = pendingUsers.map((user) => user.userID);
-    res.status(200).json(pendingUserIDs);
+    const pendingUsers = await User.find({ isAccepted: false });
+    res.status(200).json(pendingUsers);
   } catch (error) {
     console.error("Error fetching pending users:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-router.get("/messages/:userID", async (req, res) => {
+router.get("/:userID", async (req, res) => {
   const { userID } = req.params;
   try {
-    const user = await User.findOne({ userID: userID });
+    let user = await User.findOne({ userID: userID });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      user = new User({
+        userID: userID,
+        userMessages: [],
+      });
+      await user.save();
     }
-    res.status(200).json(user.userMessages);
+    res.status(200).json(user);
   } catch (error) {
     console.error("Error fetching user messages:", error);
     res.status(500).json({ message: "Internal server error" });
