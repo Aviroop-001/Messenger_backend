@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  // Add other fields as needed
+  description: { type: String },
 });
 
 const User = mongoose.model("User", userSchema);
