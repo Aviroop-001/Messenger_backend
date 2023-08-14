@@ -5,6 +5,8 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const http = require("http");
 const messagesRouter = require("./routes/messages");
+const agentRouter = require("./routes/agents");
+const userRouter = require("./routes/users");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,13 +24,16 @@ mongoose
   });
 
 
-  app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // Replace with your frontend's origin
-    res.header("Access-Control-Allow-Credentials", true);
-    next();
-  });
+  // app.use((req, res, next) => {
+  //   res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // Replace with your frontend's origin
+  //   res.header("Access-Control-Allow-Credentials", true);
+  //   next();
+  // });
 
   app.use("/api/messages", messagesRouter);
+  app.use('/api/agents', agentRouter)
+  app.use("/api/users", userRouter);
+
   app.get("/", (req, res) => {
     try {
       res.send("Server is running");
@@ -37,29 +42,35 @@ mongoose
     }
   });
 
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log("Backend is up and running...");
 });
 
-const io = require("socket.io")(server, {
-  // pingTimeout: 20000,
-  cors: {
-    origin: "*",
-  },
-});
+// const io = require("socket.io")(server, {
+//   // pingTimeout: 20000,
+//   cors: {
+//     origin: "*",
+//   },
+// });
 
-io.on("connection", (socket) => {
-  console.log("A user connected");
+// io.on("connection", (socket) => {
+//   console.log("A user connected");
 
-  socket.on("disconnect", () => {
-    console.log("A user disconnected");
-  });
-  socket.on("admin-reply-start", (userId) => {
-    socket.broadcast.emit("admin-reply-start", userId);
-  });
-  socket.on("admin-reply-end", (userId) => {
-    socket.broadcast.emit("admin-reply-end", userId);
-  });
-});
+//   socket.on("join-room", (roomId) => {
+//     socket.join(roomId);
+//     console.log(`User joined room: ${roomId}`);
+//   });
 
+//   socket.on("disconnect", () => {
+//     socket.leaveAll(); // Leave all rooms
+//     console.log("A user disconnected");
+//   });
 
+//   socket.on("admin-reply-start", (roomId) => {
+//     socket.to(roomId).emit("admin-reply-start");
+//   });
+
+//   socket.on("admin-reply-end", (roomId) => {
+//     socket.to(roomId).emit("admin-reply-end");
+//   });
+// });
